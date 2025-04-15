@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -28,5 +28,5 @@ def read_root():
     return {"message": "Welcome to FastAPI!"}
 
 @app.get("/kyc")
-def list_kyc_requests(db: Session = FastAPI(get_db)):
+def list_kyc_requests(db: Session = Depends(get_db)):
     return db.query(models.KYCRequest).all()
