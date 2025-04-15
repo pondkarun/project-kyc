@@ -1,3 +1,41 @@
 kyc-db
 /kyc-project/images
 /kyc-project/outputs
+
+
+__pycache__# Python cache
+__pycache__/
+*.py[cod]
+
+# Env & Venv
+.env
+.env.*
+venv/
+env/
+
+# Database
+*.sqlite3
+*.db
+
+# IDE/editor
+.vscode/
+.idea/
+
+# MacOS system files
+.DS_Store
+
+# Logs
+*.log
+
+# Bytecode / compiled
+*.pyo
+*.pyd
+
+# Test coverage
+htmlcov/
+coverage.xml
+.cache/
+
+# Docker
+*.pid
+*.pid.lock

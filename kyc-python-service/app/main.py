@@ -2,6 +2,10 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 
+from sqlalchemy.orm import Session
+from app.db.database import get_db
+from app.db import models
+
 app = FastAPI()
 
 app.add_middleware(
@@ -23,12 +27,6 @@ class Item(BaseModel):
 def read_root():
     return {"message": "Welcome to FastAPI!"}
 
-# รับพารามิเตอร์จาก URL
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "query": q}
-
-# POST endpoint รับข้อมูลจาก body
-@app.post("/items/")
-def create_item(item: Item):
-    return {"received_item": item}
+@app.get("/kyc")
+def list_kyc_requests(db: Session = FastAPI(get_db)):
+    return db.query(models.KYCRequest).all()
