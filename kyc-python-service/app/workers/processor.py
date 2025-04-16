@@ -31,5 +31,9 @@ def process_kyc(db: Session, kyc_id: UUID):
     if not all([face_path, id_front_path, with_id_path]):
         print(f"⚠️ Missing required images for KYC: {kyc_id}")
         return
+    
+    print("📦 Updating database...")
+    kyc_record.status = "done"
+    db.commit()
 
     print(f"✅ Done processing KYC: {kyc_id}")
