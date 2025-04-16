@@ -55,6 +55,6 @@ async def process_kyc(
     db.commit()
 
     # background task
-    background_tasks.add_task(processor.process_kyc, db, kyc_record)
+    background_tasks.add_task(processor.process_kyc, db, kyc_id)
 
     return {"message": "processing started"}

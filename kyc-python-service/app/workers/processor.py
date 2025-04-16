@@ -24,6 +24,10 @@ def process_kyc(db: Session, kyc_id: UUID):
     id_front_path = f"{base_url}/{images.get('id_front')}" if images.get("id_front") else None
     with_id_path = f"{base_url}/{images.get('with_id')}" if images.get("with_id") else None
 
+    print(f"Face path: {face_path}")
+    print(f"ID front path: {id_front_path}")
+    print(f"With ID path: {with_id_path}")
+    
     if not all([face_path, id_front_path, with_id_path]):
         print(f"⚠️ Missing required images for KYC: {kyc_id}")
         return
@@ -35,6 +39,9 @@ def process_kyc(db: Session, kyc_id: UUID):
         score_with_id_idfront = compare_faces_from_paths(with_id_path, id_front_path, label="with_id vs id_front")
     except Exception as e:
         print(f"❌ Face matching error: {e}")
+        kyc_record.status = "error"
+        kyc_record.result = {"error": f"Face matching error: {str(e)}"}
+        db.commit()
         return
 
     average_score = round((score_face_with_id + score_face_idfront + score_with_id_idfront) / 3, 2)
@@ -45,7 +52,10 @@ def process_kyc(db: Session, kyc_id: UUID):
         ocr_result = extract_ocr_data(id_front_path)
     except Exception as e:
         print(f"❌ OCR error: {e}")
-        ocr_result = {}
+        kyc_record.status = "error"
+        kyc_record.result = {"error": f"OCR error: {str(e)}"}
+        db.commit()
+        return
 
     print("📦 Updating database...")
     kyc_record.status = "done"
