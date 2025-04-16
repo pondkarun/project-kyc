@@ -34,7 +34,7 @@ def list_kyc_requests(db: Session = Depends(get_db)):
 from uuid import UUID
 from fastapi import BackgroundTasks, HTTPException
 
-# from app.workers import processor
+from app.workers import processor
 
 @app.post("/kyc/process/{kyc_id}")
 async def process_kyc(
@@ -54,6 +54,6 @@ async def process_kyc(
     db.commit()
 
     # background task
-    # background_tasks.add_task(processor.process_kyc, db, kyc_record)
+    background_tasks.add_task(processor.process_kyc, db, kyc_record)
 
     return {"message": "processing started"}
