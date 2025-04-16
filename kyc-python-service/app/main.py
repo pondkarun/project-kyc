@@ -6,6 +6,12 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db import models
 
+
+from uuid import UUID
+from fastapi import BackgroundTasks, HTTPException
+
+from app.workers import processor
+
 app = FastAPI()
 
 app.add_middleware(
@@ -30,11 +36,6 @@ def read_root():
 @app.get("/kyc")
 def list_kyc_requests(db: Session = Depends(get_db)):
     return db.query(models.KYCRequest).all()
-
-from uuid import UUID
-from fastapi import BackgroundTasks, HTTPException
-
-from app.workers import processor
 
 @app.post("/kyc/process/{kyc_id}")
 async def process_kyc(

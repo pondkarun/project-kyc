@@ -12,7 +12,8 @@ FACE_MATCH_THRESHOLD = 85.0
 print("ทำการโหลดโมดูล KYC Processor")
 
 def process_kyc(db: Session, kyc_id: UUID):
-    kyc_record = db.query(KYCRequest).filter(KYCRequest.id == kyc_id).first()
+    print("KYC Started processing...")
+    kyc_record = db.query(KYCRequest).filter(KYCRequest.kyc_id == kyc_id).first()
     if not kyc_record:
         print(f"❌ KYC ID not found: {kyc_id}")
         return

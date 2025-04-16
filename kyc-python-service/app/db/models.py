@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, DateTime, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.ext.hybrid import hybrid_property
 from .database import Base
 import uuid
 from datetime import datetime
@@ -12,3 +13,7 @@ class KYCRequest(Base):
     status = Column(Text, nullable=False)
     images = Column(JSONB)
     result = Column(JSONB)
+
+    @hybrid_property
+    def id(self):
+        return self.kyc_id
