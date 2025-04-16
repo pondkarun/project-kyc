@@ -1,5 +1,4 @@
 import os
-import uuid
 import requests
 from pathlib import Path
 from app.core.config import settings
@@ -7,10 +6,15 @@ from app.core.config import settings
 TEMP_DIR = Path(__file__).resolve().parent.parent.parent / "temp/images"
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-def download_image_to_temp(image_relative_url: str) -> str:
+def download_image_to_kyc_folder(image_relative_url: str, kyc_id: str, filename: str) -> str:
     full_url = f"{settings.base_image_url.rstrip('/')}/{image_relative_url.lstrip('/')}"
-    filename = f"{uuid.uuid4().hex}.jpg"
-    file_path = TEMP_DIR / filename
+    kyc_folder = TEMP_DIR / str(kyc_id)
+
+    # Ensure TEMP_DIR and kyc_folder exist
+    os.makedirs(TEMP_DIR, exist_ok=True)
+    os.makedirs(kyc_folder, exist_ok=True)
+
+    file_path = kyc_folder / filename
 
     try:
         response = requests.get(full_url, timeout=10)

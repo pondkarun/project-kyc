@@ -5,11 +5,12 @@ from sqlalchemy.orm import Session
 from app.db.models import KYCRequest
 from app.workers.face_match import compare_faces_from_paths
 from app.workers.ocr import extract_ocr_data
-from app.utils.image_downloader import download_image_to_temp
+from app.utils.image_downloader import download_image_to_kyc_folder
 
 FACE_MATCH_THRESHOLD = 85.0
 
 print("ทำการโหลดโมดูล KYC Processor")
+
 
 def process_kyc(db: Session, kyc_id: UUID):
     print("KYC Started processing...")
@@ -19,55 +20,16 @@ def process_kyc(db: Session, kyc_id: UUID):
         return
 
     images = kyc_record.images or {}
-    face_path = download_image_to_temp(images.get('face'))
-    id_front_path = download_image_to_temp(images.get('id_front'))
-    with_id_path = download_image_to_temp(images.get('with_id'))
+    face_path = download_image_to_kyc_folder(images.get("face"), kyc_id, "face.jpg")
+    id_front_path = download_image_to_kyc_folder(images.get("id_front"), kyc_id, "id_front.jpg")
+    with_id_path = download_image_to_kyc_folder(images.get("with_id"), kyc_id, "with_id.jpg")
 
     print(f"Face path: {face_path}")
     print(f"ID front path: {id_front_path}")
     print(f"With ID path: {with_id_path}")
-    
+
     if not all([face_path, id_front_path, with_id_path]):
         print(f"⚠️ Missing required images for KYC: {kyc_id}")
         return
-
-    print("📥 Loading images...")
-    try:
-        score_face_with_id = compare_faces_from_paths(face_path, with_id_path, label="face vs with_id")
-        score_face_idfront = compare_faces_from_paths(face_path, id_front_path, label="face vs id_front")
-        score_with_id_idfront = compare_faces_from_paths(with_id_path, id_front_path, label="with_id vs id_front")
-    except Exception as e:
-        print(f"❌ Face matching error: {e}")
-        kyc_record.status = "error"
-        kyc_record.result = {"error": f"Face matching error: {str(e)}"}
-        db.commit()
-        return
-
-    average_score = round((score_face_with_id + score_face_idfront + score_with_id_idfront) / 3, 2)
-    passed = average_score >= FACE_MATCH_THRESHOLD
-
-    print("🧠 Performing OCR on ID front...")
-    try:
-        ocr_result = extract_ocr_data(id_front_path)
-    except Exception as e:
-        print(f"❌ OCR error: {e}")
-        kyc_record.status = "error"
-        kyc_record.result = {"error": f"OCR error: {str(e)}"}
-        db.commit()
-        return
-
-    print("📦 Updating database...")
-    kyc_record.status = "done"
-    kyc_record.result = {
-        "face_scores": {
-            "face_vs_with_id": round(score_face_with_id, 2),
-            "face_vs_id_front": round(score_face_idfront, 2),
-            "with_id_vs_id_front": round(score_with_id_idfront, 2),
-            "average": average_score
-        },
-        "ocr": ocr_result,
-        "passed": passed
-    }
-    db.commit()
 
     print(f"✅ Done processing KYC: {kyc_id}")
