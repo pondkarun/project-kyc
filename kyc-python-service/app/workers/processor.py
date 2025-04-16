@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.db.models import KYCRequest
 from app.workers.face_match import compare_faces_from_paths
 from app.workers.ocr import extract_ocr_data
-from app.core.config import settings
+from app.utils.image_downloader import download_image_to_temp
 
 FACE_MATCH_THRESHOLD = 85.0
 
@@ -19,10 +19,9 @@ def process_kyc(db: Session, kyc_id: UUID):
         return
 
     images = kyc_record.images or {}
-    base_url = settings.base_image_url.rstrip('/')
-    face_path = f"{base_url}/{images.get('face')}" if images.get("face") else None
-    id_front_path = f"{base_url}/{images.get('id_front')}" if images.get("id_front") else None
-    with_id_path = f"{base_url}/{images.get('with_id')}" if images.get("with_id") else None
+    face_path = download_image_to_temp(images.get('face'))
+    id_front_path = download_image_to_temp(images.get('id_front'))
+    with_id_path = download_image_to_temp(images.get('with_id'))
 
     print(f"Face path: {face_path}")
     print(f"ID front path: {id_front_path}")
