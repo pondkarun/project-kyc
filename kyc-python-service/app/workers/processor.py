@@ -3,9 +3,12 @@ import os
 from uuid import UUID
 from sqlalchemy.orm import Session
 from app.db.models import KYCRequest
-from app.workers.face_match import compare_faces_from_paths
-from app.workers.ocr import extract_ocr_data
 from app.utils.image_downloader import download_image_to_kyc_folder
+from app.workers.detect_id_face_crop import detect_id_face_crop
+# from app.workers.extract_kyc_ocr import extract_kyc_ocr
+
+# from app.workers.face_match import compare_faces_from_paths
+# from app.workers.ocr import extract_ocr_data
 
 FACE_MATCH_THRESHOLD = 85.0
 
@@ -32,6 +35,8 @@ def process_kyc(db: Session, kyc_id: UUID):
         print(f"⚠️ Missing required images for KYC: {kyc_id}")
         return
     
+    detect_id_face_crop(kyc_id, "id_front.jpg")
+
     print("📦 Updating database...")
     kyc_record.status = "done"
     db.commit()
