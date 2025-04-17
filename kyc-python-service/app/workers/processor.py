@@ -6,7 +6,7 @@ from app.db.models import KYCRequest
 from app.utils.image_downloader import download_image_to_kyc_folder
 from app.workers.detect_id_face_crop import detect_id_face_crop
 from app.workers.extract_kyc_ocr import extract_kyc_ocr
-# from app.workers.kyc_check import run_kyc_check
+from app.workers.kyc_check import run_kyc_check
 
 FACE_MATCH_THRESHOLD = 85
 

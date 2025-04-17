@@ -1,31 +1,41 @@
+# 1. ใช้ base image ที่เบาและรองรับได้ทุก lib
 FROM python:3.10-slim
 
-# ติดตั้ง dependencies ที่จำเป็นสำหรับ face_recognition และ dlib
+# 2. ตั้ง working directory
+WORKDIR /app
+
+# 3. ติดตั้ง system dependency พื้นฐาน
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
-    libboost-all-dev \
-    libopenblas-dev \
-    liblapack-dev \
-    libx11-dev \
-    libgtk-3-dev \
-    libatlas-base-dev \
-    libjpeg-dev \
-    libbz2-dev \
-    libtiff-dev \
-    libpng-dev \
-    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    ffmpeg \
+    libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
-# ตั้ง working directory
-WORKDIR /app
-
-# คัดลอก requirements และติดตั้ง
-COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
-
-# คัดลอก source code ทั้งหมด
+# 4. Copy project files
 COPY . .
 
-# รัน Python script ที่สั่ง uvicorn
-CMD ["python", "run.py"]
+# 5. ติดตั้ง Python dependency
+RUN pip install --upgrade pip
+
+# ถ้าใช้ environment.yml:
+# RUN pip install poetry
+# RUN poetry install --no-dev
+
+# หรือใช้ requirements.txt
+# (สมมติว่าคุณ export requirements.txt ไว้แล้ว)
+COPY ./requirements.txt .
+RUN pip install -r requirements.txt
+
+# ถ้าไม่มี requirements.txt ใช้ pip install แบบตรงๆ ก็ได้ เช่น
+# RUN pip install ultralytics fastapi pydantic sqlalchemy easyocr face_recognition opencv-python
+
+# 6. เปิด port
+EXPOSE 4000
+
+# 7. คำสั่งรัน FastAPI app
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "4000"]
