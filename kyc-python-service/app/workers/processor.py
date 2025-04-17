@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from app.db.models import KYCRequest
 from app.utils.image_downloader import download_image_to_kyc_folder
 from app.workers.detect_id_face_crop import detect_id_face_crop
-from app.workers.extract_kyc_ocr import extract_kyc_ocr
+# from app.workers.extract_kyc_ocr import extract_kyc_ocr
+from app.workers.ocr import extract_ocr_data
 from app.workers.kyc_check import process_kyc_check
 
 FACE_MATCH_THRESHOLD = 85
@@ -34,7 +35,8 @@ def process_kyc(db: Session, kyc_id: UUID):
     
     result = {}
     detect_id_face_crop(kyc_id, "id_front.jpg")
-    result["data"] = extract_kyc_ocr(kyc_id)
+    # result["data"] = extract_kyc_ocr(kyc_id)
+    result["data"] = extract_ocr_data(kyc_id)
     result["kyc_data"] = process_kyc_check(kyc_id, FACE_MATCH_THRESHOLD)
     
     kyc_record.result = result
