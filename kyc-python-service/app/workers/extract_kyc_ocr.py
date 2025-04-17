@@ -29,7 +29,7 @@ def extract_kyc_ocr(folder_id: str) -> dict:
     }
     
     # Process the result to extract relevant fields
-    print("OCR Result:", result)
+    # print("OCR Result:", result)
     for detection in result:
         text = detection[1].strip()
         

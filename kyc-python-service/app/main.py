@@ -51,8 +51,8 @@ async def process_kyc(
         raise HTTPException(status_code=400, detail="already processed")
 
     # เปลี่ยนสถานะเป็น processed ทันที
-    kyc_record.status = "processed"
-    db.commit()
+    # kyc_record.status = "processed"
+    # db.commit()
 
     # background task
     background_tasks.add_task(processor.process_kyc, db, kyc_id)
