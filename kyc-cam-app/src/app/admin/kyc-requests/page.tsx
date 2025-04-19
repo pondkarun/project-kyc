@@ -184,9 +184,9 @@ const KycRequestsPage = () => {
                       <Descriptions title="ผลการตรวจสอบ KYC" bordered column={1} size="small">
                         <Descriptions.Item label="ผลการตรวจสอบ KYC">{selectedData.result?.kyc_data?.kyc_passed ? "ผ่าน" : "ไม่ผ่าน"}</Descriptions.Item>
                         <Descriptions.Item label="คะแนนเฉลี่ย">{selectedData.result?.kyc_data?.face_scores?.average}%</Descriptions.Item>
-                        <Descriptions.Item label="คะแนน ID vs Selfie">{selectedData.result?.kyc_data?.face_scores?.id_vs_selfie}%</Descriptions.Item>
-                        <Descriptions.Item label="คะแนน ID vs With ID">{selectedData.result?.kyc_data?.face_scores?.id_vs_with_id}%</Descriptions.Item>
-                        <Descriptions.Item label="คะแนน Selfie vs With ID">{selectedData.result?.kyc_data?.face_scores?.selfie_vs_with_id}%</Descriptions.Item>
+                        <Descriptions.Item label="คะแนน บัตรประชาชน vs หน้า">{selectedData.result?.kyc_data?.face_scores?.id_vs_selfie}%</Descriptions.Item>
+                        <Descriptions.Item label="คะแนน บัตรประชาชน vs หน้าถือบัตร">{selectedData.result?.kyc_data?.face_scores?.id_vs_with_id}%</Descriptions.Item>
+                        <Descriptions.Item label="คะแนน หน้า vs หน้าถือบัตร">{selectedData.result?.kyc_data?.face_scores?.selfie_vs_with_id}%</Descriptions.Item>
                       </Descriptions>
                     </Col>
                   </Row>
