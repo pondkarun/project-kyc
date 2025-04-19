@@ -1,0 +1,7 @@
+.active-row {
+  background-color: rgba(24, 144, 255, 0.2);
+}
+
+.ant-table-row:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+}
