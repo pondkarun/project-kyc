@@ -1,12 +1,14 @@
 'use client'
 
-import { LoadingOutlined } from '@ant-design/icons';
-import { Badge, Card, Col, ConfigProvider, Descriptions, Image, Row, Spin, Splitter, Table, TableProps, theme, Watermark } from 'antd'
+import { Loading3QuartersOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Badge, Button, Card, Col, ConfigProvider, Descriptions, Image, Input, message, Modal, Row, Spin, Splitter, Table, TableProps, theme, Watermark } from 'antd'
 import dayjs from 'dayjs';
 import './page.css';
+import { isBoolean } from 'lodash'
 import { useEffect, useState } from 'react';
 
 interface DataType {
+  kyc_id?: string;
   status: "pending" | "processed" | "done";
   created_at: Date;
   images: {
@@ -52,23 +54,28 @@ const result_4 = { "data": { "name_en": "Kalantabutra", "name_th": null, "birth_
 
 const KycRequestsPage = () => {
 
-  useEffect(() => {
-    const fetchKycRequests = async () => {
-      try {
-        const response = await fetch('/api/kyc/kyc-requests');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log('Fetched KYC requests:', data);
-        setData(data);
-      } catch (error) {
-        console.error('Error fetching KYC requests:', error);
-      }
-    };
+  const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
     fetchKycRequests();
   }, [])
+
+  const fetchKycRequests = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/kyc/kyc-requests');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setLoading(false);
+      console.log('Fetched KYC requests:', data);
+      setData(data);
+    } catch (error) {
+      setLoading(false);
+      console.error('Error fetching KYC requests:', error);
+    }
+  };
 
   const getStatus = (obj: any) => {
     const admin_passed = obj.result?.kyc_data?.admin_data?.admin_passed;
@@ -147,19 +154,95 @@ const KycRequestsPage = () => {
   const [selectedData, setSelectedData] = useState<DataType | null>(null);
 
 
+  const approveOrRejectRequest = async (id: string, data: DataType) => {
+    if (!selectedData) return;
+    try {
+      await fetch(`/api/kyc/kyc-requests/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data.result),
+      });
+      setIsModalOpen(false);
+      setSelectedRowKey(null);
+      setSelectedData(null);
+      setStatus(undefined);
+      message.success('อนุมัติเรียบร้อย');
+      // Refresh the KYC requests after approval
+      fetchKycRequests();
+    } catch (error) {
+      console.error('Error approving request:', error);
+    }
+  };
+
+
+  const [status, setStatus] = useState<boolean | undefined>(undefined)
+
+  const approveRequest = async (data: DataType) => {
+    setIsModalOpen(true);
+    setStatus(true)
+  }
+
+  const rejectRequest = async (data: DataType) => {
+    setIsModalOpen(true);
+    setStatus(false)
+  }
+
+  const onOkApproveRejectRequest = async (data: DataType) => {
+    const obj: DataType = { ...data }
+    if (obj.result?.kyc_data?.admin_data) {
+      obj.result.kyc_data.admin_data = {
+        ...obj.result.kyc_data.admin_data,
+        admin_passed: status,
+        admin_time: new Date(),
+        admin_name: "Admin",
+      }
+      if (obj.kyc_id) {
+        setIsModalOpen(false);
+        approveOrRejectRequest(obj.kyc_id, obj)
+      }
+    }
+  }
+
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
+  useEffect(() => {
+    if (loading == true) {
+      setSelectedRowKey(null);
+      setSelectedData(null);
+    }
+  }, [loading])
+
   return (
     <ConfigProvider theme={{ algorithm: theme.darkAlgorithm, token: { fontFamily: "'Kanit', sans-serif" } }}>
       <Card size="default" title="KYC" style={{ width: "100%" }}>
+
         <Splitter>
           <Splitter.Panel defaultSize="20%" min="20%" max="70%" style={{ padding: "20px" }}>
+            <Button
+              onClick={() => {
+                fetchKycRequests();
+              }}
+              style={{
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                marginBottom: '20px',
+              }}
+            >
+              <Loading3QuartersOutlined style={{ marginRight: '5px' }} />
+              Refresh
+            </Button>
+
             <Table<DataType>
+              loading={loading}
               columns={columns}
               dataSource={data}
               rowKey={(record, index: any) => index}
               onRow={(record, index) => ({
                 onClick: () => {
                   setSelectedRowKey(index ?? null);
-                  console.log('record :>> ', record);
                   setSelectedData(record);
                 },
               })}
@@ -191,7 +274,7 @@ const KycRequestsPage = () => {
                     </Col>
                   </Row>
 
-                  {selectedData.result?.kyc_data?.kyc_passed ? null : selectedData.result?.kyc_data?.admin_data ? (
+                  {selectedData.result?.kyc_data?.kyc_passed ? null : selectedData.result?.kyc_data?.admin_data && isBoolean(selectedData.result?.kyc_data?.admin_data?.admin_passed) ? (
                     <div style={{ marginTop: '20px' }}>
                       <Descriptions title="Admin" bordered column={1} size="small">
                         <Descriptions.Item label="ผลการตรวจสอบ Admin">{selectedData.result?.kyc_data?.admin_data?.admin_passed ? "ผ่าน" : "ไม่ผ่าน"}</Descriptions.Item>
@@ -204,14 +287,45 @@ const KycRequestsPage = () => {
                     <div style={{ marginTop: '20px' }}>
                       <Row gutter={16}>
                         <Col>
-                          <button style={{ backgroundColor: '#52c41a', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}>
+                          <Button onClick={() => approveRequest({ ...selectedData })} style={{ backgroundColor: '#52c41a', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}>
                             อนุมัติ
-                          </button>
+                          </Button>
                         </Col>
                         <Col>
-                          <button style={{ backgroundColor: '#f5222d', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}>
+                          <Button onClick={() => rejectRequest({ ...selectedData })} style={{ backgroundColor: '#f5222d', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '4px', cursor: 'pointer' }}>
                             ไม่อนุมัติ
-                          </button>
+                          </Button>
+
+                          <Modal
+                            title="ยืนยันการ อนุมัติ/ไม่อนุมัติ"
+                            open={isModalOpen}
+                            onOk={() => onOkApproveRejectRequest({ ...selectedData })}
+                            onCancel={() => setIsModalOpen(false)}
+                            okText="ยืนยัน"
+                            cancelText="ยกเลิก"
+                          >
+                            <Input.TextArea
+                              rows={10}
+                              placeholder="ความคิดเห็น"
+                              value={selectedData.result?.kyc_data?.admin_data?.admin_comment ?? ""}
+                              onChange={(e) => {
+                                if (!selectedData || !selectedData.result || !selectedData.result.kyc_data) return;
+                                setSelectedData({
+                                  ...selectedData,
+                                  result: {
+                                    ...selectedData.result,
+                                    kyc_data: {
+                                      ...selectedData.result.kyc_data,
+                                      admin_data: {
+                                        ...(selectedData.result.kyc_data.admin_data ?? {}),
+                                        admin_comment: e.target.value,
+                                      },
+                                    },
+                                  },
+                                });
+                              }}
+                            />
+                          </Modal>
                         </Col>
                       </Row>
                     </div>

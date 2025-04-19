@@ -13,12 +13,14 @@
     "antd": "^5.24.7",
     "dayjs": "^1.11.13",
     "face-api.js": "^0.22.2",
+    "lodash": "^4.17.21",
     "next": "14.2.5",
     "pg": "^8.14.1",
     "react": "^18",
     "react-dom": "^18"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.16",
     "@types/node": "^20",
     "@types/pg": "^8.11.12",
     "@types/react": "^18",

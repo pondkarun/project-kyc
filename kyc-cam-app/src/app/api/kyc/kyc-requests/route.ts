@@ -13,7 +13,7 @@ export async function GET() {
     await client.connect()
 
     const { rows } = await client.query(
-      `SELECT * FROM kyc_requests WHERE status IN ($1, $2)`,
+      `SELECT * FROM kyc_requests WHERE status IN ($1, $2) ORDER BY created_at DESC`,
       ['done', 'processed']
     )
 
