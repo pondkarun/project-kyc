@@ -34,7 +34,15 @@ const Step4WithIdFace = () => {
         })
         const stream = videoRef.current!.srcObject as MediaStream
         stream.getTracks().forEach(track => track.stop())
-        router.push(`/kyc/result`)
+
+        fetch(`http://localhost:4000/kyc/process/${kyc_id}`, {
+          method: "POST",
+          redirect: "follow"
+        }).then(response => response.text()).then(result =>
+          router.push(`/kyc/result`)
+        ).catch(error =>
+          console.error(error)
+        );
       }, 'image/jpeg')
     }
   }
