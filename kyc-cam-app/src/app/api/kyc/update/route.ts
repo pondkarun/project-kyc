@@ -40,6 +40,17 @@ export async function PUT(req: Request) {
   )
 
   await client.end()
+  
+  try {
+    const response = await fetch(`http://localhost:4000/kyc/process/${kycId}`, {
+      method: "POST",
+      redirect: "follow"
+    });
+    const result = await response.text();
+    console.log(result);
+  } catch (error) {
+    console.error(error);
+  }
 
   return new Response('Updated', { status: 200 })
 }
