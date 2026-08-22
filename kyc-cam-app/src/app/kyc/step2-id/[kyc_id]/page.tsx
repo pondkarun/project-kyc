@@ -58,7 +58,7 @@ const Step2IdFront = () => {
       })
 
       stream?.getTracks().forEach(track => track.stop())
-      router.push(`/kyc/step3-id-back/${kyc_id}`)
+      router.push(`/kyc/step4-with-id-face/${kyc_id}`)
     }, 'image/jpeg')
   }
 
